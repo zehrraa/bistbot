@@ -128,9 +128,22 @@ function veriYukle() {
     .then(data => {
 
         let filtreli = data;
+        let tekilVeriler = [];
 
-        // eğer hisse seçildiyse sadece onu getir
-        if (seciliHisse !== "") {
+        if (seciliHisse === "") {
+            // Hepsi görünümünde aynı hisseleri teke düşür
+            let eklenenHisseler = new Set();
+
+            data.forEach(x => {
+                if (!eklenenHisseler.has(x.symbol)) {
+                    tekilVeriler.push(x);
+                    eklenenHisseler.add(x.symbol);
+                }
+            });
+
+            filtreli = tekilVeriler;
+        } else {
+            // Tek hisse görünümünde sadece seçilen hisse
             filtreli = data.filter(x => x.symbol === seciliHisse);
 
             // sadece bugünün kayıtları
@@ -149,11 +162,10 @@ function veriYukle() {
         let fiyat = [];
 
         if (seciliHisse === "") {
-            // hepsi görünümünde hisse isimleri
+            // hepsi görünümünde tekil hisse isimleri
             labels = filtreli.map(x => x.symbol);
             rsi = filtreli.map(x => x.rsi);
             ema = filtreli.map(x => x.ema200);
-            fiyat = filtreli.map(x => x.close);
 
             if (chart) chart.destroy();
 
@@ -183,9 +195,9 @@ function veriYukle() {
         } else {
             // tek hisse görünümünde saatler
             labels = filtreli.map(x => saatFormatla(x.time));
-            rsi = filtreli.map(x => x.rsi);
-            ema = filtreli.map(x => x.ema200);
-            fiyat = filtreli.map(x => x.close);
+            rsi = filtreli.map(x => Number(x.rsi));
+            ema = filtreli.map(x => Number(x.ema200));
+            fiyat = filtreli.map(x => Number(x.close));
 
             if (chart) chart.destroy();
 
@@ -258,17 +270,35 @@ function veriYukle() {
         const tablo = document.getElementById("tablo");
         tablo.innerHTML = "";
 
-        filtreli.forEach(x => {
-            let satir = `
-                <tr onclick="hisseSec('${x.symbol}')" style="cursor:pointer">
-                    <td>${x.symbol}</td>
-                    <td>${Number(x.rsi).toFixed(2)}</td>
-                    <td>${Number(x.ema200).toFixed(2)}</td>
-                    <td>${Number(x.close).toFixed(2)}</td>
-                </tr>
-            `;
-            tablo.innerHTML += satir;
-        });
+        if (seciliHisse === "") {
+            // Hepsi görünümünde her hisseden 1 tane göster
+            filtreli.forEach(x => {
+                let satir = `
+                    <tr onclick="hisseSec('${x.symbol}')" style="cursor:pointer">
+                        <td>${x.symbol}</td>
+                        <td>${Number(x.rsi).toFixed(2)}</td>
+                        <td>${Number(x.ema200).toFixed(2)}</td>
+                        <td>${Number(x.close).toFixed(2)}</td>
+                    </tr>
+                `;
+                tablo.innerHTML += satir;
+            });
+        } else {
+            // Tek hisse görünümünde sadece en güncel 1 kayıt göster
+            if (filtreli.length > 0) {
+                const sonKayit = filtreli[filtreli.length - 1];
+
+                let satir = `
+                    <tr>
+                        <td>${sonKayit.symbol}</td>
+                        <td>${Number(sonKayit.rsi).toFixed(2)}</td>
+                        <td>${Number(sonKayit.ema200).toFixed(2)}</td>
+                        <td>${Number(sonKayit.close).toFixed(2)}</td>
+                    </tr>
+                `;
+                tablo.innerHTML = satir;
+            }
+        }
 
     })
     .catch(err => {

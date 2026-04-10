@@ -30,9 +30,8 @@
             padding: 8px 12px;
             margin-bottom: 10px;
             cursor: pointer;
-
-            background-color: #d28a8c;  /* buton rengi */
-            color: white;              /* yazı rengi */
+            background-color: #d28a8c;
+            color: white;
             border: none;
             border-radius: 9px;
         }
@@ -67,7 +66,6 @@
 
 <div class="container">
 
-    <!-- GERİ BUTONU -->
     <br><button onclick="tumunuGoster()"> < </button>
 
     <canvas id="chart" height="120"></canvas>
@@ -89,48 +87,172 @@
 <script>
 
 let chart;
-let seciliHisse = ""; // seçilen hisse
+let seciliHisse = "";
+
+// tarih stringini Date objesine çevir
+function tarihCevir(tarihStr) {
+    return new Date(tarihStr);
+}
+
+// sadece saat:dakika göster
+function saatFormatla(tarihStr) {
+    const tarih = tarihCevir(tarihStr);
+    const saat = String(tarih.getHours()).padStart(2, "0");
+    const dakika = String(tarih.getMinutes()).padStart(2, "0");
+    return saat + ":" + dakika;
+}
+
+// bugün mü kontrolü
+function bugunMu(tarihStr) {
+    const tarih = tarihCevir(tarihStr);
+    const simdi = new Date();
+
+    return (
+        tarih.getFullYear() === simdi.getFullYear() &&
+        tarih.getMonth() === simdi.getMonth() &&
+        tarih.getDate() === simdi.getDate()
+    );
+}
+
+// 09:00 - 18:00 arasında mı
+function saatAraliktaMi(tarihStr) {
+    const tarih = tarihCevir(tarihStr);
+    const saat = tarih.getHours();
+    return saat >= 9 && saat <= 18;
+}
 
 function veriYukle() {
 
-    fetch("http://127.0.0.1:5000/signals")
+    fetch("http://3.79.16.80:5000/signals")
     .then(res => res.json())
     .then(data => {
 
         let filtreli = data;
 
-        // eğer hisse seçildiyse filtrele
-        if(seciliHisse !== ""){
+        // eğer hisse seçildiyse sadece onu getir
+        if (seciliHisse !== "") {
             filtreli = data.filter(x => x.symbol === seciliHisse);
+
+            // sadece bugünün kayıtları
+            filtreli = filtreli.filter(x => bugunMu(x.time));
+
+            // sadece 09:00 - 18:00 arası
+            filtreli = filtreli.filter(x => saatAraliktaMi(x.time));
+
+            // eski saatten yeni saate sırala
+            filtreli.sort((a, b) => new Date(a.time) - new Date(b.time));
         }
 
-        // grafik verisi
-        const labels = filtreli.map(x => x.symbol);
-        const rsi = filtreli.map(x => x.rsi);
-        const ema = filtreli.map(x => x.ema200);
+        let labels = [];
+        let rsi = [];
+        let ema = [];
+        let fiyat = [];
 
-        if(chart) chart.destroy();
+        if (seciliHisse === "") {
+            // hepsi görünümünde hisse isimleri
+            labels = filtreli.map(x => x.symbol);
+            rsi = filtreli.map(x => x.rsi);
+            ema = filtreli.map(x => x.ema200);
+            fiyat = filtreli.map(x => x.close);
 
-        chart = new Chart(document.getElementById("chart"), {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "RSI",
-                        data: rsi,
-                        borderColor: "green",
-                        tension: 0.3
+            if (chart) chart.destroy();
+
+            chart = new Chart(document.getElementById("chart"), {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "RSI",
+                            data: rsi,
+                            borderColor: "green",
+                            tension: 0.3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: "EMA200",
+                            data: ema,
+                            borderColor: "red",
+                            tension: 0.3,
+                            pointRadius: 0
+                        }
+                    ]
+                }
+            });
+
+        } else {
+            // tek hisse görünümünde saatler
+            labels = filtreli.map(x => saatFormatla(x.time));
+            rsi = filtreli.map(x => x.rsi);
+            ema = filtreli.map(x => x.ema200);
+            fiyat = filtreli.map(x => x.close);
+
+            if (chart) chart.destroy();
+
+            chart = new Chart(document.getElementById("chart"), {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "RSI",
+                            data: rsi,
+                            borderColor: "green",
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: "y"
+                        },
+                        {
+                            label: "EMA200",
+                            data: ema,
+                            borderColor: "red",
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: "y1"
+                        },
+                        {
+                            label: "FIYAT",
+                            data: fiyat,
+                            borderColor: "blue",
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: "y1"
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
                     },
-                    {
-                        label: "EMA200",
-                        data: ema,
-                        borderColor: "red",
-                        tension: 0.3
+                    scales: {
+                        y: {
+                            type: "linear",
+                            position: "left",
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: "RSI"
+                            }
+                        },
+                        y1: {
+                            type: "linear",
+                            position: "right",
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: "EMA200 / FIYAT"
+                            }
+                        }
                     }
-                ]
-            }
-        });
+                }
+            });
+        }
 
         // TABLO
         const tablo = document.getElementById("tablo");
@@ -140,33 +262,32 @@ function veriYukle() {
             let satir = `
                 <tr onclick="hisseSec('${x.symbol}')" style="cursor:pointer">
                     <td>${x.symbol}</td>
-                    <td>${x.rsi.toFixed(2)}</td>
-                    <td>${x.ema200.toFixed(2)}</td>
-                    <td>${x.close.toFixed(2)}</td>
+                    <td>${Number(x.rsi).toFixed(2)}</td>
+                    <td>${Number(x.ema200).toFixed(2)}</td>
+                    <td>${Number(x.close).toFixed(2)}</td>
                 </tr>
             `;
             tablo.innerHTML += satir;
         });
 
+    })
+    .catch(err => {
+        console.log("Hata:", err);
     });
 }
 
-// tabloya tıklayınca
-function hisseSec(symbol){
+function hisseSec(symbol) {
     seciliHisse = symbol;
     veriYukle();
 }
 
-// geri butonu
-function tumunuGoster(){
+function tumunuGoster() {
     seciliHisse = "";
     veriYukle();
 }
 
-// ilk yükleme
 veriYukle();
 
-// 10 saniyede yenile
 setInterval(veriYukle, 10000);
 
 </script>

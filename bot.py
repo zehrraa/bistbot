@@ -80,7 +80,7 @@ def calistir():
 
             ticker = yf.Ticker(stock)
 
-            hist = ticker.history(period="1y", interval="4h")
+            hist = ticker.history(period="1y", interval="1h")
 
             if len(hist) < 200:
                 continue

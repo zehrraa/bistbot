@@ -27,7 +27,7 @@ def get_signals():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM signals ORDER BY time DESC LIMIT 30")
+    cursor.execute("SELECT * FROM signals ORDER BY time DESC LIMIT 300")
     rows = cursor.fetchall()
 
     cursor.close()

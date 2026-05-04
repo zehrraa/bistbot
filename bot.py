@@ -81,11 +81,15 @@ def calistir():
             ticker = yf.Ticker(stock)
 
             hist = ticker.history(period="1y", interval="1h")
+            daily = ticker.history(period="1y", interval="1d")
 
             if len(hist) < 200:
                 continue
 
-            hist["EMA200"] = hist["Close"].ewm(span=200, adjust=False).mean()
+            if len(daily) >= 200:
+                ema200 = daily["Close"].ewm(span=200, adjust=False).mean().iloc[-1]
+            else:
+                ema200 = hist["Close"].iloc[-1]
 
             delta = hist["Close"].diff()
 
@@ -102,8 +106,8 @@ def calistir():
             today_close = hist["Close"].iloc[-1]
             yesterday_close = hist["Close"].iloc[-2]
 
-            today_ema = hist["EMA200"].iloc[-1]
-            yesterday_ema = hist["EMA200"].iloc[-2]
+            today_ema = ema200
+            yesterday_ema = ema200
 
             today_rsi = hist["RSI"].iloc[-1]
 

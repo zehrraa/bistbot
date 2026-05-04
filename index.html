@@ -7,8 +7,8 @@
         body {
             margin: 0;
             font-family: Arial;
-            background: #f7e5ec;
-            color: #d28a8c;
+            background: #819ab1;
+            color: #677889;
         }
 
         h2 {
@@ -30,7 +30,7 @@
             padding: 8px 12px;
             margin-bottom: 10px;
             cursor: pointer;
-            background-color: #d28a8c;
+            background-color: #677889;
             color: white;
             border: none;
             border-radius: 9px;
@@ -59,6 +59,56 @@
         tr:hover {
             background: #b0b3b8;
         }
+   
+   input {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border: 1px solid #677889;
+    border-radius: 9px;
+    outline: none;
+}
+
+.rsi-yuksek {
+    color: red;
+    font-weight: bold;
+}
+
+.rsi-dusuk {
+    color: green;
+    font-weight: bold;
+}
+
+.rsi-normal {
+    color: #333;
+}
+
+th {
+    cursor: pointer;
+}
+
+th:hover {
+    background: #b0b3b8;
+}
+   .dark-mode {
+    background: #1e1e1e;
+    color: white;
+}
+
+.dark-mode canvas {
+    background: #2b2b2b;
+}
+
+.dark-mode th {
+    background: #333;
+}
+
+.dark-mode tr:nth-child(even) {
+    background: #2b2b2b;
+}
+
+.dark-mode tr:hover {
+    background: #444;
+}
     </style>
 </head>
 
@@ -66,17 +116,35 @@
 
 <div class="container">
 
-    <br><button onclick="tumunuGoster()"> < </button>
+    <br>
+    
+    <button onclick="tumunuGoster()"> &lt; Tümünü Göster</button>
+    <button onclick="favorileriGoster()">⭐ Favoriler</button>
+    <button onclick="temaDegistir()">Tema</button>
+
+    <input 
+    type="text" 
+    id="aramaKutusu" 
+    placeholder="Hisse ara.."
+    onkeyup="veriYukle()"
+>
+
+<button onclick="filtreSec('tum')">Tümü</button>
+<button onclick="filtreSec('rsiYuksek')">RSI Yüksek</button>
+<button onclick="filtreSec('rsiDusuk')">RSI Düşük</button>
+<button onclick="filtreSec('emaUstu')">EMA Üstü</button>
+
 
     <canvas id="chart" height="120"></canvas>
 
     <table>
         <thead>
             <tr>
-                <th>HISSE</th>
-                <th>RSI</th>
-                <th>EMA200</th>
-                <th>FIYAT</th>
+                <th>Favorile</th>
+               <th onclick="sirala('symbol')">HISSE</th>
+               <th onclick="sirala('rsi')">RSI</th>
+               <th onclick="sirala('ema200')">EMA200</th>
+               <th onclick="sirala('close')">FIYAT</th>
             </tr>
         </thead>
         <tbody id="tablo"></tbody>
@@ -88,6 +156,11 @@
 
 let chart;
 let seciliHisse = "";
+let favoriler = JSON.parse(localStorage.getItem("favoriler")) || [];
+let sadeceFavoriler = false;
+let aktifFiltre = "tum";
+let siralamaKolonu = "";
+let siralamaYon = "asc";
 
 // tarih stringini Date objesine çevir
 function tarihCevir(tarihStr) {
@@ -142,6 +215,49 @@ function veriYukle() {
             });
 
             filtreli = tekilVeriler;
+            if (sadeceFavoriler) {
+    filtreli = filtreli.filter(x => favoriler.includes(x.symbol));
+}
+
+            // Arama kutusu filtresi
+const aramaDegeri = document.getElementById("aramaKutusu").value.toUpperCase();
+
+if (aramaDegeri !== "") {
+    filtreli = filtreli.filter(x => x.symbol.toUpperCase().includes(aramaDegeri));
+}
+
+// Buton filtreleri
+if (aktifFiltre === "rsiYuksek") {
+    filtreli = filtreli.filter(x => Number(x.rsi) >= 70);
+}
+
+if (aktifFiltre === "rsiDusuk") {
+    filtreli = filtreli.filter(x => Number(x.rsi) <= 30);
+}
+
+if (aktifFiltre === "emaUstu") {
+    filtreli = filtreli.filter(x => Number(x.close) > Number(x.ema200));
+}
+
+// Sıralama
+if (siralamaKolonu !== "") {
+    filtreli.sort((a, b) => {
+        let degerA = a[siralamaKolonu];
+        let degerB = b[siralamaKolonu];
+
+        if (siralamaKolonu !== "symbol") {
+            degerA = Number(degerA);
+            degerB = Number(degerB);
+        }
+
+        if (siralamaYon === "asc") {
+            return degerA > degerB ? 1 : -1;
+        } else {
+            return degerA < degerB ? 1 : -1;
+        }
+    });
+}
+
         } else {
             // Tek hisse görünümünde sadece seçilen hisse
             filtreli = data.filter(x => x.symbol === seciliHisse);
@@ -273,15 +389,29 @@ function veriYukle() {
         if (seciliHisse === "") {
             // Hepsi görünümünde her hisseden 1 tane göster
             filtreli.forEach(x => {
-                let satir = `
-                    <tr onclick="hisseSec('${x.symbol}')" style="cursor:pointer">
-                        <td>${x.symbol}</td>
-                        <td>${Number(x.rsi).toFixed(2)}</td>
-                        <td>${Number(x.ema200).toFixed(2)}</td>
-                        <td>${Number(x.close).toFixed(2)}</td>
-                    </tr>
-                `;
-                tablo.innerHTML += satir;
+                let rsiClass = "rsi-normal";
+
+                if (Number(x.rsi) >= 70) {
+                rsiClass = "rsi-yuksek";
+                } else if (Number(x.rsi) <= 30) {
+                rsiClass = "rsi-dusuk";
+        }
+
+let yildiz = favoriler.includes(x.symbol) ? "⭐" : "☆";
+
+let satir = `
+    <tr>
+        <td>
+            <button onclick="favoriDegistir('${x.symbol}')">${yildiz}</button>
+        </td>
+        <td onclick="hisseSec('${x.symbol}')" style="cursor:pointer">${x.symbol}</td>
+        <td class="${rsiClass}">${Number(x.rsi).toFixed(2)}</td>
+        <td>${Number(x.ema200).toFixed(2)}</td>
+        <td>${Number(x.close).toFixed(2)}</td>
+    </tr>
+`;
+
+tablo.innerHTML += satir;
             });
         } else {
             // Tek hisse görünümünde sadece en güncel 1 kayıt göster
@@ -313,9 +443,48 @@ function hisseSec(symbol) {
 
 function tumunuGoster() {
     seciliHisse = "";
+    sadeceFavoriler = false;
+    veriYukle();
+}
+function filtreSec(filtre) {
+    aktifFiltre = filtre;
     veriYukle();
 }
 
+function sirala(kolon) {
+    if (siralamaKolonu === kolon) {
+        siralamaYon = siralamaYon === "asc" ? "desc" : "asc";
+    } else {
+        siralamaKolonu = kolon;
+        siralamaYon = "asc";
+    }
+
+    veriYukle();
+}
+function favoriDegistir(symbol) {
+    if (favoriler.includes(symbol)) {
+        favoriler = favoriler.filter(x => x !== symbol);
+    } else {
+        favoriler.push(symbol);
+    }
+
+    localStorage.setItem("favoriler", JSON.stringify(favoriler));
+    veriYukle();
+}
+    function favorileriGoster() {
+    sadeceFavoriler = true;
+    seciliHisse = "";
+    veriYukle();
+}
+function temaDegistir() {
+    document.body.classList.toggle("dark-mode");
+
+    if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("tema", "dark");
+    } else {
+        localStorage.setItem("tema", "light");
+    }
+}
 veriYukle();
 
 setInterval(veriYukle, 10000);

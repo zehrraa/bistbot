@@ -440,9 +440,13 @@ tablo.innerHTML += satir;
             if (filtreli.length > 0) {
                 const sonKayit = filtreli[filtreli.length - 1];
 
+                let yildiz = favoriler.includes(sonKayit.symbol) ? "⭐" : "☆";
+                
                 let satir = `
     <tr>
-        <td>-</td>
+        <td>
+            <button onclick="favoriDegistir('${sonKayit.symbol}')">${yildiz}</button>
+            </td>
         <td>${sonKayit.symbol}</td>
         <td>${Number(sonKayit.rsi).toFixed(2)}</td>
         <td>${Number(sonKayit.ema200).toFixed(2)}</td>

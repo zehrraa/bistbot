@@ -317,14 +317,14 @@ if (siralamaKolonu !== "") {
                             data: rsi,
                             borderColor: "green",
                             tension: 0.3,
-                            pointRadius: 0
+                            pointRadius: 4
                         },
                         {
                             label: "EMA200",
                             data: ema,
                             borderColor: "red",
                             tension: 0.3,
-                            pointRadius: 0
+                            pointRadius: 4
                         }
                     ]
                 }
@@ -349,7 +349,7 @@ if (siralamaKolonu !== "") {
                             data: rsi,
                             borderColor: "green",
                             tension: 0.3,
-                            pointRadius: 0,
+                            pointRadius: 4,
                             yAxisID: "y"
                         },
                         {
@@ -357,7 +357,7 @@ if (siralamaKolonu !== "") {
                             data: ema,
                             borderColor: "red",
                             tension: 0.3,
-                            pointRadius: 0,
+                            pointRadius: 4,
                             yAxisID: "y1"
                         },
                         {
@@ -365,7 +365,7 @@ if (siralamaKolonu !== "") {
                             data: fiyat,
                             borderColor: "blue",
                             tension: 0.3,
-                            pointRadius: 0,
+                            pointRadius: 4,
                             yAxisID: "y1"
                         }
                     ]
@@ -441,13 +441,15 @@ tablo.innerHTML += satir;
                 const sonKayit = filtreli[filtreli.length - 1];
 
                 let satir = `
-                    <tr>
-                        <td>${sonKayit.symbol}</td>
-                        <td>${Number(sonKayit.rsi).toFixed(2)}</td>
-                        <td>${Number(sonKayit.ema200).toFixed(2)}</td>
-                        <td>${Number(sonKayit.close).toFixed(2)}</td>
-                    </tr>
-                `;
+    <tr>
+        <td>-</td>
+        <td>${sonKayit.symbol}</td>
+        <td>${Number(sonKayit.rsi).toFixed(2)}</td>
+        <td>${Number(sonKayit.ema200).toFixed(2)}</td>
+        <td>${Number(sonKayit.close).toFixed(2)}</td>
+    </tr>
+`;
+
                 tablo.innerHTML = satir;
             }
         }

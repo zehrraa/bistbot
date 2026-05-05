@@ -74,7 +74,7 @@ def get_hourly_signal(symbol):
             FROM signals
             WHERE symbol = %s
               AND DATE(time) = CURDATE()
-              AND HOUR(time) BETWEEN 10 AND 18
+              AND HOUR(time) BETWEEN 9 AND 18
             GROUP BY HOUR(time)
         ) son
         ON HOUR(s.time) = son.saat AND s.time = son.max_time

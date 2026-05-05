@@ -35,5 +35,59 @@ def get_signals():
 
     return jsonify(rows)
 
+@app.route("/signals/latest")
+def get_latest_signals():
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.*
+        FROM signals s
+        INNER JOIN (
+            SELECT symbol, MAX(time) AS max_time
+            FROM signals
+            GROUP BY symbol
+        ) son
+        ON s.symbol = son.symbol AND s.time = son.max_time
+        ORDER BY s.symbol ASC
+    """)
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(rows)
+
+@app.route("/signals/hourly/<symbol>")
+def get_hourly_signal(symbol):
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.*
+        FROM signals s
+        INNER JOIN (
+            SELECT HOUR(time) AS saat, MAX(time) AS max_time
+            FROM signals
+            WHERE symbol = %s
+              AND DATE(time) = CURDATE()
+              AND HOUR(time) BETWEEN 10 AND 18
+            GROUP BY HOUR(time)
+        ) son
+        ON HOUR(s.time) = son.saat AND s.time = son.max_time
+        WHERE s.symbol = %s
+        ORDER BY s.time ASC
+    """, (symbol, symbol))
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(rows)
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

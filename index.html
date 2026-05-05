@@ -138,6 +138,8 @@ th:hover {
 
     <canvas id="chart" height="120"></canvas>
 
+    <p id="sonVeriBilgisi" style="text-align:center; font-weight:bold;"></p>
+
     <table>
         <thead>
             <tr>
@@ -197,9 +199,30 @@ function saatAraliktaMi(tarihStr) {
 
 function veriYukle() {
 
-    fetch("http://3.79.16.80:5000/signals")
+    let url = "";
+
+    if (seciliHisse === "") {
+        url = "http://3.79.16.80:5000/signals/latest";
+    } else {
+        url = "http://3.79.16.80:5000/signals/hourly/" + seciliHisse;
+    }
+
+    fetch(url)
     .then(res => res.json())
     .then(data => {
+
+        if (data.length > 0) {
+            let sonZaman = data[0].time;
+
+            data.forEach(x => {
+                if (new Date(x.time) > new Date(sonZaman)) {
+                    sonZaman = x.time;
+                }
+            });
+
+            document.getElementById("sonVeriBilgisi").innerText =
+                "Son çekilen veri saati: " + saatFormatla(sonZaman);
+        }
 
         let filtreli = data;
         let tekilVeriler = [];
@@ -262,12 +285,6 @@ if (siralamaKolonu !== "") {
         } else {
             // Tek hisse görünümünde sadece seçilen hisse
             filtreli = data.filter(x => x.symbol === seciliHisse);
-
-            // sadece bugünün kayıtları
-            filtreli = filtreli.filter(x => bugunMu(x.time));
-
-            // sadece 09:00 - 18:00 arası
-            filtreli = filtreli.filter(x => saatAraliktaMi(x.time));
 
             // eski saatten yeni saate sırala
             filtreli.sort((a, b) => new Date(a.time) - new Date(b.time));

@@ -111,13 +111,22 @@ def calistir():
 
             today_rsi = hist["RSI"].iloc[-1]
 
+            last_time = hist.index[-1]
+
+            try:
+                last_time = last_time.tz_convert("Europe/Istanbul")
+            except:
+                pass
+
+            last_time = last_time.to_pydatetime().replace(tzinfo=None)
+
             # 🔴 VERİTABANINA KAYDET
             cursor.execute("""
             INSERT INTO signals(symbol,time,close,ema200,rsi)
             VALUES(%s,%s,%s,%s,%s)
             """,(
                 stock,
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                last_time.strftime("%Y-%m-%d %H:%M:%S"),
                 float(today_close),
                 float(today_ema),
                 float(today_rsi)

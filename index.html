@@ -166,15 +166,19 @@ let siralamaKolonu = "";
 let siralamaYon = "asc";
 
 // tarih stringini Date objesine çevir
-function tarihCevir(tarihStr) {
-    return new Date(tarihStr);
-}
-
-// sadece saat:dakika göster
 function saatFormatla(tarihStr) {
-    const tarih = tarihCevir(tarihStr);
+    const yazi = String(tarihStr);
+
+    const eslesme = yazi.match(/(\d{2}):(\d{2}):(\d{2})/);
+
+    if (eslesme) {
+        return eslesme[1] + ":" + eslesme[2];
+    }
+
+    const tarih = new Date(tarihStr);
     const saat = String(tarih.getHours()).padStart(2, "0");
     const dakika = String(tarih.getMinutes()).padStart(2, "0");
+
     return saat + ":" + dakika;
 }
 

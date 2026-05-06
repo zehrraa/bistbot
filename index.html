@@ -1,494 +1,529 @@
-<html>
+<!DOCTYPE html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>BIST30</title>
+    <title>BIST30 Trading Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: Arial;
-            background: #819ab1;
-            color: #677889;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
         }
 
-        h2 {
-            text-align: center;
+        .app {
+            width: 100%;
+            min-height: 100vh;
+            padding: 16px;
         }
 
-        .container {
-            width: 95%;
-            margin: auto;
+        .topbar {
+            height: 64px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            margin-bottom: 16px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: bold;
+            color: #93c5fd;
+        }
+
+        .top-info {
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 420px;
+            gap: 16px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #93c5fd;
+            margin-bottom: 12px;
+        }
+
+        .market-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mini-list {
+            max-height: 210px;
+            overflow-y: auto;
+            border-top: 1px solid #334155;
+            padding-top: 8px;
+        }
+
+        .mini-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 10px;
+            background: #0f172a;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .mini-item:hover {
+            background: #334155;
+        }
+
+        .green {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .red {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .blue {
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .selected-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .metric {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 10px 14px;
+            min-width: 110px;
+        }
+
+        .metric span {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .metric strong {
+            font-size: 18px;
         }
 
         canvas {
             width: 100%;
-            background: #c5c7ca;
-            border-radius: 10px;
+            height: 420px !important;
+            background: #111827;
+            border-radius: 14px;
+            padding: 8px;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tools {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            outline: none;
+            margin-bottom: 10px;
         }
 
         button {
-            padding: 8px 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            background-color: #677889;
+            background: #334155;
             color: white;
             border: none;
-            border-radius: 9px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #475569;
+        }
+
+        button.active {
+            background: #2563eb;
         }
 
         table {
             width: 100%;
-            margin-top: 20px;
             border-collapse: collapse;
+            font-size: 13px;
         }
 
         th {
-            background: #c5c7ca;
-            padding: 10px;
+            color: #93c5fd;
+            background: #0f172a;
+            padding: 9px;
+            position: sticky;
+            top: 0;
         }
 
         td {
-            padding: 8px;
+            padding: 9px;
             text-align: center;
+            border-bottom: 1px solid #334155;
         }
 
-        tr:nth-child(even) {
-            background: #c5c7ca;
+        tr {
+            cursor: pointer;
         }
 
         tr:hover {
-            background: #b0b3b8;
+            background: #334155;
         }
-   
-   input {
-    padding: 8px 12px;
-    margin-bottom: 10px;
-    border: 1px solid #677889;
-    border-radius: 9px;
-    outline: none;
-}
 
-.rsi-yuksek {
-    color: red;
-    font-weight: bold;
-}
+        .table-wrap {
+            max-height: 620px;
+            overflow-y: auto;
+        }
 
-.rsi-dusuk {
-    color: green;
-    font-weight: bold;
-}
+        .favorite-btn {
+            padding: 5px 8px;
+            border-radius: 8px;
+        }
 
-.rsi-normal {
-    color: #333;
-}
+        .status-line {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 10px;
+        }
 
-th {
-    cursor: pointer;
-}
+        @media (max-width: 1200px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
 
-th:hover {
-    background: #b0b3b8;
-}
-   .dark-mode {
-    background: #1e1e1e;
-    color: white;
-}
-
-.dark-mode canvas {
-    background: #2b2b2b;
-}
-
-.dark-mode th {
-    background: #333;
-}
-
-.dark-mode tr:nth-child(even) {
-    background: #2b2b2b;
-}
-
-.dark-mode tr:hover {
-    background: #444;
-}
+            canvas {
+                height: 360px !important;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-    <br>
-    
-    <button onclick="tumunuGoster()"> &lt; Tümünü Göster</button>
-    <button onclick="favorileriGoster()">⭐ Favoriler</button>
-    <button onclick="temaDegistir()">Tema</button>
+    <div class="topbar">
+        <div>
+            <div class="brand">BIST30 Trading Panel</div>
+            <div class="top-info">RSI • EMA200 • Fiyat Takip Sistemi</div>
+        </div>
+        <div class="top-info" id="sonVeriBilgisi">Son veri: -</div>
+    </div>
 
-    <input 
-    type="text" 
-    id="aramaKutusu" 
-    placeholder="Hisse ara.."
-    onkeyup="veriYukle()"
->
+    <div class="layout">
 
-<button onclick="filtreSec('tum')">Tümü</button>
-<button onclick="filtreSec('rsiYuksek')">RSI Yüksek</button>
-<button onclick="filtreSec('rsiDusuk')">RSI Düşük</button>
-<button onclick="filtreSec('emaUstu')">EMA Üstü</button>
+        <div class="market-list">
 
+            <div class="card">
+                <div class="card-title">RSI Yüksek</div>
+                <div id="rsiYuksekListe" class="mini-list"></div>
+            </div>
 
-    <canvas id="chart" height="120"></canvas>
+            <div class="card">
+                <div class="card-title">RSI Düşük</div>
+                <div id="rsiDusukListe" class="mini-list"></div>
+            </div>
 
-    <p id="sonVeriBilgisi" style="text-align:center; font-weight:bold;"></p>
+            <div class="card">
+                <div class="card-title">EMA200 Üstünde</div>
+                <div id="emaUstuListe" class="mini-list"></div>
+            </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Favorile</th>
-               <th onclick="sirala('symbol')">HISSE</th>
-               <th onclick="sirala('rsi')">RSI</th>
-               <th onclick="sirala('ema200')">EMA200</th>
-               <th onclick="sirala('close')">FIYAT</th>
-            </tr>
-        </thead>
-        <tbody id="tablo"></tbody>
-    </table>
+        </div>
+
+        <div class="main">
+
+            <div class="card">
+                <div class="chart-header">
+                    <div>
+                        <div class="selected-symbol" id="seciliHisseBaslik">Hisse Seçilmedi</div>
+                        <div class="status-line">Sağdaki tablodan hisse seçince grafik burada açılır.</div>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric">
+                            <span>RSI</span>
+                            <strong id="metricRsi">-</strong>
+                        </div>
+                        <div class="metric">
+                            <span>EMA200</span>
+                            <strong id="metricEma">-</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Fiyat</span>
+                            <strong id="metricFiyat">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <canvas id="chart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="right-panel">
+
+            <div class="card">
+                <div class="card-title">Hisseler</div>
+
+                <input 
+                    type="text" 
+                    id="aramaKutusu" 
+                    placeholder="Hisse ara..."
+                    onkeyup="tabloyuGuncelle()"
+                >
+
+                <div class="tools">
+                    <button onclick="filtreSec('tum')" id="btnTum" class="active">Tümü</button>
+                    <button onclick="filtreSec('favori')" id="btnFavori">Favoriler</button>
+                    <button onclick="filtreSec('rsiYuksek')" id="btnRsiYuksek">RSI Yüksek</button>
+                    <button onclick="filtreSec('rsiDusuk')" id="btnRsiDusuk">RSI Düşük</button>
+                    <button onclick="filtreSec('emaUstu')" id="btnEmaUstu">EMA Üstü</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>⭐</th>
+                                <th>Hisse</th>
+                                <th>RSI</th>
+                                <th>EMA200</th>
+                                <th>Fiyat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hisseTablosu"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
 <script>
+const API_BASE = "http://3.79.16.80:5000";
 
-let chart;
+let tumVeriler = [];
 let seciliHisse = "";
-let favoriler = JSON.parse(localStorage.getItem("favoriler")) || [];
-let sadeceFavoriler = false;
 let aktifFiltre = "tum";
-let siralamaKolonu = "";
-let siralamaYon = "asc";
+let chart = null;
+let favoriler = JSON.parse(localStorage.getItem("favoriler")) || [];
 
-// tarih stringini Date objesine çevir
 function saatFormatla(tarihStr) {
-    const yazi = String(tarihStr);
-
-    const eslesme = yazi.match(/(\d{2}):(\d{2}):(\d{2})/);
-
-    if (eslesme) {
-        return eslesme[1] + ":" + eslesme[2];
-    }
-
     const tarih = new Date(tarihStr);
     const saat = String(tarih.getHours()).padStart(2, "0");
     const dakika = String(tarih.getMinutes()).padStart(2, "0");
-
     return saat + ":" + dakika;
 }
 
-// bugün mü kontrolü
-function bugunMu(tarihStr) {
-    const tarih = tarihCevir(tarihStr);
-    const simdi = new Date();
-
-    return (
-        tarih.getFullYear() === simdi.getFullYear() &&
-        tarih.getMonth() === simdi.getMonth() &&
-        tarih.getDate() === simdi.getDate()
-    );
-}
-
-// 09:00 - 18:00 arasında mı
-function saatAraliktaMi(tarihStr) {
-    const tarih = tarihCevir(tarihStr);
-    const saat = tarih.getHours();
-    return saat >= 9 && saat <= 18;
+function sayiFormatla(deger) {
+    if (deger === null || deger === undefined || isNaN(Number(deger))) {
+        return "-";
+    }
+    return Number(deger).toFixed(2);
 }
 
 function veriYukle() {
+    fetch(API_BASE + "/signals/latest")
+        .then(res => res.json())
+        .then(data => {
+            tumVeriler = data;
 
-    let url = "";
+            sonVeriSaatiniYaz();
+            solListeleriGuncelle();
+            tabloyuGuncelle();
 
-    if (seciliHisse === "") {
-        url = "http://3.79.16.80:5000/signals/latest";
-    } else {
-        url = "http://3.79.16.80:5000/signals/hourly/" + seciliHisse;
+            if (tumVeriler.length > 0 && seciliHisse === "") {
+                hisseSec(tumVeriler[0].symbol);
+            }
+        })
+        .catch(err => {
+            console.log("Veri çekme hatası:", err);
+        });
+}
+
+function sonVeriSaatiniYaz() {
+    if (tumVeriler.length === 0) return;
+
+    let son = tumVeriler[0].time;
+
+    tumVeriler.forEach(x => {
+        if (new Date(x.time) > new Date(son)) {
+            son = x.time;
+        }
+    });
+
+    document.getElementById("sonVeriBilgisi").innerText =
+        "Son veri: " + saatFormatla(son);
+}
+
+function solListeleriGuncelle() {
+    const rsiYuksek = tumVeriler
+        .filter(x => Number(x.rsi) >= 70)
+        .sort((a, b) => Number(b.rsi) - Number(a.rsi));
+
+    const rsiDusuk = tumVeriler
+        .filter(x => Number(x.rsi) <= 30)
+        .sort((a, b) => Number(a.rsi) - Number(b.rsi));
+
+    const emaUstu = tumVeriler
+        .filter(x => Number(x.close) > Number(x.ema200))
+        .sort((a, b) => Number(b.rsi) - Number(a.rsi));
+
+    listeBas("rsiYuksekListe", rsiYuksek, "rsi", "red");
+    listeBas("rsiDusukListe", rsiDusuk, "rsi", "green");
+    listeBas("emaUstuListe", emaUstu, "close", "blue");
+}
+
+function listeBas(elementId, liste, alan, renkClass) {
+    const alanDiv = document.getElementById(elementId);
+    alanDiv.innerHTML = "";
+
+    if (liste.length === 0) {
+        alanDiv.innerHTML = `<div class="mini-item">Kayıt yok</div>`;
+        return;
     }
 
-    fetch(url)
-    .then(res => res.json())
-    .then(data => {
-
-        if (data.length > 0) {
-            let sonZaman = data[0].time;
-
-            data.forEach(x => {
-                if (new Date(x.time) > new Date(sonZaman)) {
-                    sonZaman = x.time;
-                }
-            });
-
-            document.getElementById("sonVeriBilgisi").innerText =
-                "Son çekilen veri saati: " + saatFormatla(sonZaman);
-        }
-
-        let filtreli = data;
-        let tekilVeriler = [];
-
-        if (seciliHisse === "") {
-            // Hepsi görünümünde aynı hisseleri teke düşür
-            let eklenenHisseler = new Set();
-
-            data.forEach(x => {
-                if (!eklenenHisseler.has(x.symbol)) {
-                    tekilVeriler.push(x);
-                    eklenenHisseler.add(x.symbol);
-                }
-            });
-
-            filtreli = tekilVeriler;
-            if (sadeceFavoriler) {
-    filtreli = filtreli.filter(x => favoriler.includes(x.symbol));
-}
-
-            // Arama kutusu filtresi
-const aramaDegeri = document.getElementById("aramaKutusu").value.toUpperCase();
-
-if (aramaDegeri !== "") {
-    filtreli = filtreli.filter(x => x.symbol.toUpperCase().includes(aramaDegeri));
-}
-
-// Buton filtreleri
-if (aktifFiltre === "rsiYuksek") {
-    filtreli = filtreli.filter(x => Number(x.rsi) >= 70);
-}
-
-if (aktifFiltre === "rsiDusuk") {
-    filtreli = filtreli.filter(x => Number(x.rsi) <= 30);
-}
-
-if (aktifFiltre === "emaUstu") {
-    filtreli = filtreli.filter(x => Number(x.close) > Number(x.ema200));
-}
-
-// Sıralama
-if (siralamaKolonu !== "") {
-    filtreli.sort((a, b) => {
-        let degerA = a[siralamaKolonu];
-        let degerB = b[siralamaKolonu];
-
-        if (siralamaKolonu !== "symbol") {
-            degerA = Number(degerA);
-            degerB = Number(degerB);
-        }
-
-        if (siralamaYon === "asc") {
-            return degerA > degerB ? 1 : -1;
-        } else {
-            return degerA < degerB ? 1 : -1;
-        }
+    liste.forEach(x => {
+        alanDiv.innerHTML += `
+            <div class="mini-item" onclick="hisseSec('${x.symbol}')">
+                <span>${x.symbol}</span>
+                <span class="${renkClass}">${sayiFormatla(x[alan])}</span>
+            </div>
+        `;
     });
 }
 
-        } else {
-            // Tek hisse görünümünde sadece seçilen hisse
-            filtreli = data.filter(x => x.symbol === seciliHisse);
+function tabloyuGuncelle() {
+    const tablo = document.getElementById("hisseTablosu");
+    const arama = document.getElementById("aramaKutusu").value.toUpperCase();
 
-            // eski saatten yeni saate sırala
-            filtreli.sort((a, b) => new Date(a.time) - new Date(b.time));
-        }
+    let liste = [...tumVeriler];
 
-        let labels = [];
-        let rsi = [];
-        let ema = [];
-        let fiyat = [];
+    if (arama !== "") {
+        liste = liste.filter(x => x.symbol.toUpperCase().includes(arama));
+    }
 
-        if (seciliHisse === "") {
-            // hepsi görünümünde tekil hisse isimleri
-            labels = filtreli.map(x => x.symbol);
-            rsi = filtreli.map(x => x.rsi);
-            ema = filtreli.map(x => x.ema200);
+    if (aktifFiltre === "favori") {
+        liste = liste.filter(x => favoriler.includes(x.symbol));
+    }
 
-            if (chart) chart.destroy();
+    if (aktifFiltre === "rsiYuksek") {
+        liste = liste.filter(x => Number(x.rsi) >= 70);
+    }
 
-            chart = new Chart(document.getElementById("chart"), {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "RSI",
-                            data: rsi,
-                            borderColor: "green",
-                            tension: 0.3,
-                            pointRadius: 4
-                        },
-                        {
-                            label: "EMA200",
-                            data: ema,
-                            borderColor: "red",
-                            tension: 0.3,
-                            pointRadius: 4
-                        }
-                    ]
-                }
-            });
+    if (aktifFiltre === "rsiDusuk") {
+        liste = liste.filter(x => Number(x.rsi) <= 30);
+    }
 
-        } else {
-            // tek hisse görünümünde saatler
-            labels = filtreli.map(x => saatFormatla(x.time));
-            rsi = filtreli.map(x => Number(x.rsi));
-            ema = filtreli.map(x => Number(x.ema200));
-            fiyat = filtreli.map(x => Number(x.close));
+    if (aktifFiltre === "emaUstu") {
+        liste = liste.filter(x => Number(x.close) > Number(x.ema200));
+    }
 
-            if (chart) chart.destroy();
+    tablo.innerHTML = "";
 
-            chart = new Chart(document.getElementById("chart"), {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "RSI",
-                            data: rsi,
-                            borderColor: "green",
-                            tension: 0.3,
-                            pointRadius: 4,
-                            yAxisID: "y"
-                        },
-                        {
-                            label: "EMA200",
-                            data: ema,
-                            borderColor: "red",
-                            tension: 0.3,
-                            pointRadius: 4,
-                            yAxisID: "y1"
-                        },
-                        {
-                            label: "FIYAT",
-                            data: fiyat,
-                            borderColor: "blue",
-                            tension: 0.3,
-                            pointRadius: 4,
-                            yAxisID: "y1"
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        y: {
-                            type: "linear",
-                            position: "left",
-                            min: 0,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: "RSI"
-                            }
-                        },
-                        y1: {
-                            type: "linear",
-                            position: "right",
-                            grid: {
-                                drawOnChartArea: false
-                            },
-                            title: {
-                                display: true,
-                                text: "EMA200 / FIYAT"
-                            }
-                        }
-                    }
-                }
-            });
-        }
+    liste.forEach(x => {
+        const yildiz = favoriler.includes(x.symbol) ? "⭐" : "☆";
 
-        // TABLO
-        const tablo = document.getElementById("tablo");
-        tablo.innerHTML = "";
+        let rsiClass = "";
+        if (Number(x.rsi) >= 70) rsiClass = "red";
+        else if (Number(x.rsi) <= 30) rsiClass = "green";
 
-        if (seciliHisse === "") {
-            // Hepsi görünümünde her hisseden 1 tane göster
-            filtreli.forEach(x => {
-                let rsiClass = "rsi-normal";
-
-                if (Number(x.rsi) >= 70) {
-                rsiClass = "rsi-yuksek";
-                } else if (Number(x.rsi) <= 30) {
-                rsiClass = "rsi-dusuk";
-        }
-
-let yildiz = favoriler.includes(x.symbol) ? "⭐" : "☆";
-
-let satir = `
-    <tr>
-        <td>
-            <button onclick="favoriDegistir('${x.symbol}')">${yildiz}</button>
-        </td>
-        <td onclick="hisseSec('${x.symbol}')" style="cursor:pointer">${x.symbol}</td>
-        <td class="${rsiClass}">${Number(x.rsi).toFixed(2)}</td>
-        <td>${Number(x.ema200).toFixed(2)}</td>
-        <td>${Number(x.close).toFixed(2)}</td>
-    </tr>
-`;
-
-tablo.innerHTML += satir;
-            });
-        } else {
-            // Tek hisse görünümünde sadece en güncel 1 kayıt göster
-            if (filtreli.length > 0) {
-                const sonKayit = filtreli[filtreli.length - 1];
-
-                let yildiz = favoriler.includes(sonKayit.symbol) ? "⭐" : "☆";
-                
-                let satir = `
-    <tr>
-        <td>
-            <button onclick="favoriDegistir('${sonKayit.symbol}')">${yildiz}</button>
-            </td>
-        <td>${sonKayit.symbol}</td>
-        <td>${Number(sonKayit.rsi).toFixed(2)}</td>
-        <td>${Number(sonKayit.ema200).toFixed(2)}</td>
-        <td>${Number(sonKayit.close).toFixed(2)}</td>
-    </tr>
-`;
-
-                tablo.innerHTML = satir;
-            }
-        }
-
-    })
-    .catch(err => {
-        console.log("Hata:", err);
+        tablo.innerHTML += `
+            <tr onclick="hisseSec('${x.symbol}')">
+                <td>
+                    <button class="favorite-btn" onclick="event.stopPropagation(); favoriDegistir('${x.symbol}')">
+                        ${yildiz}
+                    </button>
+                </td>
+                <td class="blue">${x.symbol}</td>
+                <td class="${rsiClass}">${sayiFormatla(x.rsi)}</td>
+                <td>${sayiFormatla(x.ema200)}</td>
+                <td>${sayiFormatla(x.close)}</td>
+            </tr>
+        `;
     });
 }
 
-function hisseSec(symbol) {
-    seciliHisse = symbol;
-    veriYukle();
-}
-
-function tumunuGoster() {
-    seciliHisse = "";
-    sadeceFavoriler = false;
-    veriYukle();
-}
 function filtreSec(filtre) {
     aktifFiltre = filtre;
-    veriYukle();
+
+    document.querySelectorAll(".tools button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    if (filtre === "tum") document.getElementById("btnTum").classList.add("active");
+    if (filtre === "favori") document.getElementById("btnFavori").classList.add("active");
+    if (filtre === "rsiYuksek") document.getElementById("btnRsiYuksek").classList.add("active");
+    if (filtre === "rsiDusuk") document.getElementById("btnRsiDusuk").classList.add("active");
+    if (filtre === "emaUstu") document.getElementById("btnEmaUstu").classList.add("active");
+
+    tabloyuGuncelle();
 }
 
-function sirala(kolon) {
-    if (siralamaKolonu === kolon) {
-        siralamaYon = siralamaYon === "asc" ? "desc" : "asc";
-    } else {
-        siralamaKolonu = kolon;
-        siralamaYon = "asc";
-    }
-
-    veriYukle();
-}
 function favoriDegistir(symbol) {
     if (favoriler.includes(symbol)) {
         favoriler = favoriler.filter(x => x !== symbol);
@@ -497,26 +532,142 @@ function favoriDegistir(symbol) {
     }
 
     localStorage.setItem("favoriler", JSON.stringify(favoriler));
-    veriYukle();
+    tabloyuGuncelle();
 }
-    function favorileriGoster() {
-    sadeceFavoriler = true;
-    seciliHisse = "";
-    veriYukle();
-}
-function temaDegistir() {
-    document.body.classList.toggle("dark-mode");
 
-    if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("tema", "dark");
-    } else {
-        localStorage.setItem("tema", "light");
+function hisseSec(symbol) {
+    seciliHisse = symbol;
+
+    const sonKayit = tumVeriler.find(x => x.symbol === symbol);
+
+    if (sonKayit) {
+        document.getElementById("seciliHisseBaslik").innerText = symbol;
+        document.getElementById("metricRsi").innerText = sayiFormatla(sonKayit.rsi);
+        document.getElementById("metricEma").innerText = sayiFormatla(sonKayit.ema200);
+        document.getElementById("metricFiyat").innerText = sayiFormatla(sonKayit.close);
     }
+
+    fetch(API_BASE + "/signals/hourly/" + symbol)
+        .then(res => res.json())
+        .then(data => {
+            grafikCiz(data);
+        })
+        .catch(err => {
+            console.log("Saatlik veri hatası:", err);
+        });
 }
+
+function grafikCiz(data) {
+    const labels = data.map(x => saatFormatla(x.time));
+    const rsi = data.map(x => Number(x.rsi));
+    const ema = data.map(x => Number(x.ema200));
+    const fiyat = data.map(x => Number(x.close));
+
+    if (chart) {
+        chart.destroy();
+    }
+
+    chart = new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "RSI",
+                    data: rsi,
+                    borderColor: "#22c55e",
+                    backgroundColor: "rgba(34,197,94,0.1)",
+                    tension: 0.35,
+                    pointRadius: 4,
+                    yAxisID: "y"
+                },
+                {
+                    label: "EMA200",
+                    data: ema,
+                    borderColor: "#ef4444",
+                    backgroundColor: "rgba(239,68,68,0.1)",
+                    tension: 0.35,
+                    pointRadius: 4,
+                    yAxisID: "y1"
+                },
+                {
+                    label: "Fiyat",
+                    data: fiyat,
+                    borderColor: "#60a5fa",
+                    backgroundColor: "rgba(96,165,250,0.1)",
+                    tension: 0.35,
+                    pointRadius: 4,
+                    yAxisID: "y1"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#cbd5e1"
+                    }
+                },
+                tooltip: {
+                    backgroundColor: "#0f172a",
+                    titleColor: "#93c5fd",
+                    bodyColor: "#e5e7eb",
+                    borderColor: "#334155",
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: "#94a3b8"
+                    },
+                    grid: {
+                        color: "#1f2937"
+                    }
+                },
+                y: {
+                    position: "left",
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        color: "#94a3b8"
+                    },
+                    grid: {
+                        color: "#1f2937"
+                    },
+                    title: {
+                        display: true,
+                        text: "RSI",
+                        color: "#94a3b8"
+                    }
+                },
+                y1: {
+                    position: "right",
+                    ticks: {
+                        color: "#94a3b8"
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    title: {
+                        display: true,
+                        text: "EMA200 / Fiyat",
+                        color: "#94a3b8"
+                    }
+                }
+            }
+        }
+    });
+}
+
 veriYukle();
-
-setInterval(veriYukle, 10000);
-
+setInterval(veriYukle, 15000);
 </script>
 
 </body>

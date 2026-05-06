@@ -70,14 +70,14 @@ def get_hourly_signal(symbol):
         SELECT s.*
         FROM signals s
         INNER JOIN (
-            SELECT HOUR(time) AS saat, MAX(time) AS max_time
+            SELECT HOUR(time) AS saat, MAX(id) AS max_id
             FROM signals
             WHERE symbol = %s
               AND DATE(time) = CURDATE()
               AND HOUR(time) BETWEEN 9 AND 18
             GROUP BY HOUR(time)
         ) son
-        ON HOUR(s.time) = son.saat AND s.time = son.max_time
+        ON s.id = son.max_id
         WHERE s.symbol = %s
         ORDER BY s.time ASC
     """, (symbol, symbol))

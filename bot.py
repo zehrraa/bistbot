@@ -120,19 +120,37 @@ def calistir():
 
             last_time = last_time.to_pydatetime().replace(tzinfo=None)
 
-            # 🔴 VERİTABANINA KAYDET
+            # 🔴 AYNI HİSSE + AYNI SAAT VAR MI KONTROL ET
             cursor.execute("""
-            INSERT INTO signals(symbol,time,close,ema200,rsi)
-            VALUES(%s,%s,%s,%s,%s)
-            """,(
+            SELECT COUNT(*)
+            FROM signals
+            WHERE symbol = %s
+              AND DATE(time) = DATE(%s)
+              AND HOUR(time) = HOUR(%s)
+            """, (
                 stock,
                 last_time.strftime("%Y-%m-%d %H:%M:%S"),
-                float(today_close),
-                float(today_ema),
-                float(today_rsi)
+                last_time.strftime("%Y-%m-%d %H:%M:%S")
             ))
 
-            conn.commit()
+            var_mi = cursor.fetchone()[0]
+
+            if var_mi == 0:
+                # 🔴 VERİTABANINA KAYDET
+                cursor.execute("""
+                INSERT INTO signals(symbol,time,close,ema200,rsi)
+                VALUES(%s,%s,%s,%s,%s)
+                """,(
+                    stock,
+                    last_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    float(today_close),
+                    float(today_ema),
+                    float(today_rsi)
+                ))
+
+                conn.commit()
+            else:
+                print(stock, "bu saat için zaten kayıt var, tekrar yazılmadı.")
 
             change = (today_close - yesterday_close) / yesterday_close * 100
 

@@ -264,8 +264,8 @@
 
     <div class="topbar">
         <div>
-            <div class="brand">BIST30 Trading Panel</div>
-            <div class="top-info">RSI • EMA200 • Fiyat Takip Sistemi</div>
+            <div class="brand">BIST30</div>
+            <div class="top-info">RSI • EMA200 • Fiyat</div>
         </div>
         <div class="top-info" id="sonVeriBilgisi">Son veri: -</div>
     </div>
@@ -297,7 +297,6 @@
                 <div class="chart-header">
                     <div>
                         <div class="selected-symbol" id="seciliHisseBaslik">Hisse Seçilmedi</div>
-                        <div class="status-line">Sağdaki tablodan hisse seçince grafik burada açılır.</div>
                     </div>
 
                     <div class="metrics">
@@ -336,9 +335,6 @@
                 <div class="tools">
                     <button onclick="filtreSec('tum')" id="btnTum" class="active">Tümü</button>
                     <button onclick="filtreSec('favori')" id="btnFavori">Favoriler</button>
-                    <button onclick="filtreSec('rsiYuksek')" id="btnRsiYuksek">RSI Yüksek</button>
-                    <button onclick="filtreSec('rsiDusuk')" id="btnRsiDusuk">RSI Düşük</button>
-                    <button onclick="filtreSec('emaUstu')" id="btnEmaUstu">EMA Üstü</button>
                 </div>
 
                 <div class="table-wrap">
@@ -373,9 +369,18 @@ let chart = null;
 let favoriler = JSON.parse(localStorage.getItem("favoriler")) || [];
 
 function saatFormatla(tarihStr) {
+    const yazi = String(tarihStr);
+
+    const eslesme = yazi.match(/(\d{2}):(\d{2}):(\d{2})/);
+
+    if (eslesme) {
+        return eslesme[1] + ":" + eslesme[2];
+    }
+
     const tarih = new Date(tarihStr);
     const saat = String(tarih.getHours()).padStart(2, "0");
     const dakika = String(tarih.getMinutes()).padStart(2, "0");
+
     return saat + ":" + dakika;
 }
 
@@ -517,9 +522,6 @@ function filtreSec(filtre) {
 
     if (filtre === "tum") document.getElementById("btnTum").classList.add("active");
     if (filtre === "favori") document.getElementById("btnFavori").classList.add("active");
-    if (filtre === "rsiYuksek") document.getElementById("btnRsiYuksek").classList.add("active");
-    if (filtre === "rsiDusuk") document.getElementById("btnRsiDusuk").classList.add("active");
-    if (filtre === "emaUstu") document.getElementById("btnEmaUstu").classList.add("active");
 
     tabloyuGuncelle();
 }
